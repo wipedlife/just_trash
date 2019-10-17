@@ -36,6 +36,11 @@ BLOCK_OPERATION_INIT(A2);
 BLOCK_OPERATION_INIT(A3);
 BLOCK_OPERATION_INIT(A4);
 
+long long unsigned W_H( hash_block * block);
+//TODO: B0-B3
+// Z
+
+ubig C_H(TYPEFOROPERATION);
 
 //H
 

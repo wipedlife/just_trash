@@ -87,7 +87,57 @@ inline void A3_H(TYPEFOROPERATION){
 		//rv = (rv << 8) + byte
 	}
 }
-inline void A4_H(TYPEFOROPERATION){}
+inline void A4_H(TYPEFOROPERATION){
+	INIT_N;
+	ubig a,b,c,d,e;
+	a = N ^ 7;
+     	b = N ^ 2;
+     	c = N ^ 3;
+     	d = N << 12;
+     	e = N >> 14;
+	for(ubyte i=26;i--;)
+		block->data[i]^=
+		((a^b) | (a^c) | (a^d) | (a^e)) ^ ((b^c) 
+		| (b^e) | (b^d) | (e^a)) | (14+12);
+}
+
+inline ubig W_H(TYPEFOROPERATION){
+	INIT_N;
+	hash_block tmp;
+	memcpy(&tmp, block, sizeof(hash_block));
+	ubig a1,a2,a3;
+	for(ubyte i=26;i--;){
+		A1_H(&tmp);
+		a1 +=tmp.data[i];
+		A2_H(&tmp);
+		a2 += tmp.data[i];
+		A3_H(&tmp);
+		a3 += tmp.data[i];
+	}
+	memcpy(&tmp, block, sizeof(hash_block));
+	for(ubyte i =26;i--;){
+		tmp.data[i]=(N&0xFF);
+		N>>=8;
+	}
+	A4_H(&tmp);
+	N=N^26;
+	for(ubyte i =26;i--;)
+		N=N^(N<<8) | tmp.data[i];
+	return
+		((a1+a2+a3)^N << (14+12) ) ^ (14+12);
+	
+}
+
+inline ubig C_H(TYPEFOROPERATION){
+	ubig c,v;
+	ubig e=W_H(block);
+	//char str[26];
+	//memcpy( str, block.data, 26 );
+	c = (v << 8 | e) << (14+12) | (14+12);
+	v = ( (v ^ c)^e ) << (14+12) | (14+12);
+	return ( (v << (14+12)) ^ (14+12) );
+	
+}
 
 
 void hashing(hash_block * blocks, size_t cblock){
@@ -95,6 +145,24 @@ void hashing(hash_block * blocks, size_t cblock){
 		A1_H(&blocks[i]);
 		A2_H(&blocks[i]);
 		A3_H(&blocks[i]);
+		A4_H(&blocks[i]);	
+	}
+	for(size_t i=cblock;i--;){
+		ubig ch = C_H(&blocks[i]);
+		ubig wh = W_H(&blocks[i]);
+		for(size_t cbyte=0;cbyte<MAGICNUMBER;cbyte++){
+			blocks[i].data[cbyte]=
+				blocks[i].data[cbyte]^ch;
+			blocks[i].data[cbyte]=
+				blocks[i].data[cbyte]^wh;
+			if(i+1 < MAGICNUMBER)
+			 blocks[i].data[cbyte]^=
+				blocks[i+1].data[cbyte];
+			else
+				blocks[i].data[cbyte]^=
+					blocks[i-14].data[cbyte];
+		}
+
 	}
 }
 
