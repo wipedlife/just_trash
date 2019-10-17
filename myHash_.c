@@ -71,8 +71,20 @@ inline void A2_H(TYPEFOROPERATION){
 }
 inline void A3_H(TYPEFOROPERATION){
 	INIT_N;
+	hash_block tmp;
+	memcpy(&tmp, block, sizeof(hash_block));
+		
 	for(ubyte i=26;i--;){
-	
+		A1_H(&tmp);
+		ubyte c =tmp.data[i];
+		A2_H(&tmp);
+		ubyte c1= tmp.data[i];
+		block->data[i]=
+			block->data[i]^c;
+		block->data[i]=
+			block->data[i]^c1;
+		//T...
+		//rv = (rv << 8) + byte
 	}
 }
 inline void A4_H(TYPEFOROPERATION){}
@@ -82,6 +94,7 @@ void hashing(hash_block * blocks, size_t cblock){
 	for(size_t i=cblock;i--;){
 		A1_H(&blocks[i]);
 		A2_H(&blocks[i]);
+		A3_H(&blocks[i]);
 	}
 }
 
